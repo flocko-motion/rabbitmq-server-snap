@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
 #        os: [ubuntu-18.04, ubuntu-20.04]
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out sources
@@ -22,13 +22,13 @@ jobs:
       - name: Build snap
         uses: snapcore/action-build@v1
         id: snapcraft
-      - name: Install rabbitmq-server snap
-        run: |
-          echo "Tests.."
-          echo $(uname -a)
-          uname -a          
-          sudo snap install --devmode ./rabbitmq-server-snap_3.6.10_multi.snap
-          snap run erlang-test
+      # - name: Install rabbitmq-server snap
+       # run: |
+       #   echo "Tests.."
+       #   echo $(uname -a)
+       #   uname -a          
+       #   sudo snap install --devmode ./rabbitmq-server-snap_3.6.10_multi.snap
+       #   snap run erlang-test
 
       # - name: Wait for rabbitmq-server to start
       #   run: |
