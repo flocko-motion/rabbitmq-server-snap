@@ -117,31 +117,71 @@ parts:
   #   stage:
   #     - usr
 
-  erlang:
-    plugin: autotools
-    source: https://github.com/erlang/otp.git
-    source-tag: OTP-20.3.8.26
+  erlang-prebuilt:
+    plugin: nil 
+    override-pull: |
+      uname -a
+      curl -1sLf "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.github.rabbitmq.signing.gpg > /dev/null
+      curl -1sLf "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf77f1eda57ebb1cc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg > /dev/null
+      distribution=bionic
+      printf "deb [signed-by=/usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg] http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu $distribution main\ndeb-src [signed-by=/usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg] http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu $distribution main\n" > /etc/apt/sources.list.d/erlang.list
+      apt-get update -y
+      # apt-get install -y erlang-base \
+      #                   erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
+      #                   erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
+      #                   erlang-runtime-tools erlang-snmp erlang-ssl \
+      #                   erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
     build-packages:
-      - libssl-dev
-      - libncurses-dev
+      - curl
+      - gnupg
+      - apt-transport-https
     stage-packages:
-      - openssl
-      - ncurses-base
-      - libncurses5
-      - libtinfo5
-    override-build: |
-      set -e -u -x
+      - erlang-base
+      - erlang-asn1
+      - erlang-crypto
+      - erlang-eldap
+      - erlang-ftp
+      - erlang-inets
+      - erlang-mnesia
+      - erlang-os-mon
+      - erlang-parsetools
+      - erlang-public-key
+      - erlang-runtime-tools
+      - erlang-snmp
+      - erlang-ssl
+      - erlang-syntax-tools
+      - erlang-tftp
+      - erlang-tools
+      - erlang-xmerl
 
-      env | sort
+      
 
-      ./otp_build autoconf
-      ./configure --prefix=/usr
+  # erlang:
+  #   plugin: autotools
+  #   source: https://github.com/erlang/otp.git
+  #   source-tag: OTP-20.3.8.26
+  #   build-packages:
+  #     - libssl-dev
+  #     - libncurses-dev
+  #   stage-packages:
+  #     - openssl
+  #     - ncurses-base
+  #     - libncurses5
+  #     - libtinfo5
+  #   override-build: |
+  #     apt-get install -y erlang
+  #     # set -e -u -x
 
-      make
-      make install DESTDIR=${SNAPCRAFT_PART_INSTALL}
+  #     # env | sort
 
-      sed --in-place \
-        --expression 's:^\(ROOTDIR\).*:\1=$(readlink --canonicalize $(dirname $0))/../lib/erlang:' \
-        ${SNAPCRAFT_PART_INSTALL}/usr/bin/erl
-    stage:
-      - usr
+  #     # ./otp_build autoconf
+  #     # ./configure --prefix=/usr
+
+  #     # make
+  #     # make install DESTDIR=${SNAPCRAFT_PART_INSTALL}
+
+  #     # sed --in-place \
+  #     #   --expression 's:^\(ROOTDIR\).*:\1=$(readlink --canonicalize $(dirname $0))/../lib/erlang:' \
+  #     #   ${SNAPCRAFT_PART_INSTALL}/usr/bin/erl
+  #   stage:
+  #     - usr
