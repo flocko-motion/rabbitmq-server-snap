@@ -19,101 +19,103 @@ grade: stable
 confinement: strict
 
 apps:
-  rabbitmq-server:
-    daemon: simple
-    plugs:
-      - network
-      - network-bind
-    restart-condition: on-failure
-    restart-delay: 10s
-    command: usr/lib/erlang/bin/rabbitmq-server
-    stop-command: usr/lib/erlang/bin/rabbitmqctl stop
-  rabbitmqctl:
-    plugs:
-      - network
-    command: usr/lib/erlang/bin/rabbitmqctl
-  epmd:
-    plugs:
-      - network
-      - network-bind
-    command: usr/lib/erlang/bin/epmd
+  # rabbitmq-server:
+  #   daemon: simple
+  #   plugs:
+  #     - network
+  #     - network-bind
+  #   restart-condition: on-failure
+  #   restart-delay: 10s
+  #   command: usr/lib/erlang/bin/rabbitmq-server
+  #   stop-command: usr/lib/erlang/bin/rabbitmqctl stop
+  # rabbitmqctl:
+  #   plugs:
+  #     - network
+  #   command: usr/lib/erlang/bin/rabbitmqctl
+  # epmd:
+  #   plugs:
+  #     - network
+  #     - network-bind
+  #   command: usr/lib/erlang/bin/epmd
+  erlang-test:
+    command: usr/lib/erlang/erts-9.3.3.15/bin/erlexec
 
 parts:
-  rabbitmq-support:
-    plugin: dump
-    source: assets
-    organize:
-      rabbitmq-defaults: etc/rabbitmq/rabbitmq-defaults
-      rabbitmq-server.service: lib/systemd/system/rabbitmq-server.service
-    stage:
-      - etc/rabbitmq/rabbitmq-defaults
-      - lib/systemd/system/rabbitmq-server.service
+  # rabbitmq-support:
+  #   plugin: dump
+  #   source: assets
+  #   organize:
+  #     rabbitmq-defaults: etc/rabbitmq/rabbitmq-defaults
+  #     rabbitmq-server.service: lib/systemd/system/rabbitmq-server.service
+  #   stage:
+  #     - etc/rabbitmq/rabbitmq-defaults
+  #     - lib/systemd/system/rabbitmq-server.service
 
-  # Building rabbitmq-server from git fails because the build script downloads other
-  # repositories in `deps` and uses the `master` branch of them. This leads to build
-  # failures because the Erlang version is not recent enough.
-  rabbitmq-server:
-    after:
-      - elixir
-      - erlang
-    plugin: make
-    # source: https://github.com/rabbitmq/rabbitmq-server.git
-    # source-tag: rabbitmq_v3_6_10
-    source: https://github.com/rabbitmq/rabbitmq-server/releases/download/rabbitmq_v3_6_10/rabbitmq-server_3.6.10.orig.tar.xz
-    build-packages:
-      - curl
-      - python-all
-      - python-simplejson
-      - rsync
-      - unzip
-      - xmlto
-      - xsltproc
-      - zip
-    stage-packages:
-      - adduser
-      - coreutils
-      - libtinfo5
-      - logrotate
-      - lsb-base
-      - socat
-    override-build: |
-      set -e -u -x
+  # # Building rabbitmq-server from git fails because the build script downloads other
+  # # repositories in `deps` and uses the `master` branch of them. This leads to build
+  # # failures because the Erlang version is not recent enough.
+  # rabbitmq-server:
+  #   after:
+  #     - elixir
+  #     - erlang
+  #   plugin: make
+  #   # source: https://github.com/rabbitmq/rabbitmq-server.git
+  #   # source-tag: rabbitmq_v3_6_10
+  #   source: https://github.com/rabbitmq/rabbitmq-server/releases/download/rabbitmq_v3_6_10/rabbitmq-server_3.6.10.orig.tar.xz
+  #   build-packages:
+  #     - curl
+  #     - python-all
+  #     - python-simplejson
+  #     - rsync
+  #     - unzip
+  #     - xmlto
+  #     - xsltproc
+  #     - zip
+  #   stage-packages:
+  #     - adduser
+  #     - coreutils
+  #     - libtinfo5
+  #     - logrotate
+  #     - lsb-base
+  #     - socat
+  #   override-build: |
+  #     set -e -u -x
 
-      # Create branch when checking out from git. Without a branch the build script
-      # will fail.
-      # git checkout -b buildbranch
+  #     # Create branch when checking out from git. Without a branch the build script
+  #     # will fail.
+  #     # git checkout -b buildbranch
 
-      export DESTDIR=${SNAPCRAFT_PART_INSTALL}
-      export PREFIX=/usr
-      export PYTHON=python3
-      export V=1
+  #     export DESTDIR=${SNAPCRAFT_PART_INSTALL}
+  #     export PREFIX=/usr
+  #     export PYTHON=python3
+  #     export V=1
 
-      sed --in-place \
-        --expression 's:^SYS_PREFIX=.*:SYS_PREFIX=${SNAP_COMMON}:' \
-        deps/rabbit/scripts/rabbitmq-defaults
+  #     sed --in-place \
+  #       --expression 's:^SYS_PREFIX=.*:SYS_PREFIX=${SNAP_COMMON}:' \
+  #       deps/rabbit/scripts/rabbitmq-defaults
 
-      make dist manpages
+  #     make dist manpages
       
-      make install
-      make install-bin
+  #     make install
+  #     make install-bin
 
-  elixir:
-    after:
-      - erlang
-    plugin: make
-    source: https://github.com/elixir-lang/elixir.git
-    source-tag: v1.5.3
-    override-build: |
-      set -e -u -x
+  # elixir:
+  #   after:
+  #     - erlang
+  #   plugin: make
+  #   source: https://github.com/elixir-lang/elixir.git
+  #   source-tag: v1.5.3
+  #   override-build: |
+  #     set -e -u -x
 
-      env | sort
+  #     env | sort
 
-      make clean
-      make compile
-      # make test
-      make install PREFIX=/usr DESTDIR=${SNAPCRAFT_PART_INSTALL}
-    stage:
-      - usr
+  #     make clean
+  #     make compile
+  #     # make test
+  #     make install PREFIX=/usr DESTDIR=${SNAPCRAFT_PART_INSTALL}
+  #   stage:
+  #     - usr
 
   erlang:
     plugin: autotools
