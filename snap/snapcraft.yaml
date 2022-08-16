@@ -1,7 +1,7 @@
-name: rabbitmq-server-snap
-base: core18
-version: '3.6.10'
-summary: AMQP server written in  Erlang
+name: rabbitmq-server
+base: core20
+version: '0.0.1'
+summary: AMQP server written in Erlang
 description: |
   RabbitMQ is an implementation of AMQP, the emerging standard for
   high performance enterprise messaging. The RabbitMQ server is a
@@ -13,178 +13,78 @@ contact: https://github.com/nicolasbock/rabbitmq-server-snap/issues
 icon: assets/logo.png
 license: Apache-2.0
 architectures:
-#  - build-on: [amd64, i386, arm64]
-  - build-on: [arm64]
+  - build-on: amd64
+    run-on: [arm64]
 grade: stable
 confinement: strict
 
 apps:
-  # rabbitmq-server:
-  #   daemon: simple
-  #   plugs:
-  #     - network
-  #     - network-bind
-  #   restart-condition: on-failure
-  #   restart-delay: 10s
-  #   command: usr/lib/erlang/bin/rabbitmq-server
-  #   stop-command: usr/lib/erlang/bin/rabbitmqctl stop
-  # rabbitmqctl:
-  #   plugs:
-  #     - network
-  #   command: usr/lib/erlang/bin/rabbitmqctl
-  # epmd:
-  #   plugs:
-  #     - network
-  #     - network-bind
-  #   command: usr/lib/erlang/bin/epmd
-  erlang-test:
-    command: /bin/bash # usr/lib/erlang/erts-9.3.3.15/bin/erlexec
+  rabbitmq-server:
+    daemon: simple
+    plugs:
+      - network
+      - network-bind
+    restart-condition: on-failure
+    restart-delay: 10s
+    command: bin/rabbitmq-server
+    stop-command: bin/rabbitmqctl stop
+  rabbitmqctl:
+    plugs:
+      - network
+    command: bin/rabbitmqctl
+  epmd:
+    plugs:
+      - network
+      - network-bind
+    command: usr/lib/erlang/bin/epmd
+  rabbitmq-shell:
+    command: bin/bash
+
+  rabbitmq-diagnostics:
+    command: bin/rabbitmq-diagnostics
 
 parts:
-  # rabbitmq-support:
-  #   plugin: dump
-  #   source: assets
-  #   organize:
-  #     rabbitmq-defaults: etc/rabbitmq/rabbitmq-defaults
-  #     rabbitmq-server.service: lib/systemd/system/rabbitmq-server.service
-  #   stage:
-  #     - etc/rabbitmq/rabbitmq-defaults
-  #     - lib/systemd/system/rabbitmq-server.service
+  test:
+    plugin: dump
+    source: assets
+    stage:
+      - etc/*
+      - bin/*
 
-  # # Building rabbitmq-server from git fails because the build script downloads other
-  # # repositories in `deps` and uses the `master` branch of them. This leads to build
-  # # failures because the Erlang version is not recent enough.
-  # rabbitmq-server:
-  #   after:
-  #     - elixir
-  #     - erlang
-  #   plugin: make
-  #   # source: https://github.com/rabbitmq/rabbitmq-server.git
-  #   # source-tag: rabbitmq_v3_6_10
-  #   source: https://github.com/rabbitmq/rabbitmq-server/releases/download/rabbitmq_v3_6_10/rabbitmq-server_3.6.10.orig.tar.xz
-  #   build-packages:
-  #     - curl
-  #     - python-all
-  #     - python-simplejson
-  #     - rsync
-  #     - unzip
-  #     - xmlto
-  #     - xsltproc
-  #     - zip
-  #   stage-packages:
-  #     - adduser
-  #     - coreutils
-  #     - libtinfo5
-  #     - logrotate
-  #     - lsb-base
-  #     - socat
-  #   override-build: |
-  #     set -e -u -x
+  rabbitmq:
+    plugin: dump
+    source: https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.10.7/rabbitmq-server_3.10.7-1_all.deb
+    source-type: deb    
+    source-checksum: sha1/026a50b240548c8216a674218856385d4c9c7d3f
 
-  #     # Create branch when checking out from git. Without a branch the build script
-  #     # will fail.
-  #     # git checkout -b buildbranch
+  elixir:
+    plugin: dump
+    source: https://github.com/elixir-lang/elixir/releases/download/v1.13.3/Precompiled.zip
+    source-type: zip
+    source-checksum: sha1/7a2d0ff13beadcba3f566d692d960dcd785df5c8
+    organize:
+      '*': 'usr/'
 
-  #     export DESTDIR=${SNAPCRAFT_PART_INSTALL}
-  #     export PREFIX=/usr
-  #     export PYTHON=python3
-  #     export V=1
+  #   for AMD64
+  #   source: https://packages.erlang-solutions.com/erlang/debian/pool/esl-erlang_25.0.2-1~ubuntu~focal_amd64.deb
+  #   source-type: deb
+  #   source-checksum: sha1/64db8e85bb1ae5cbbf46a75b61c423c6d5517bcd
 
-  #     sed --in-place \
-  #       --expression 's:^SYS_PREFIX=.*:SYS_PREFIX=${SNAP_COMMON}:' \
-  #       deps/rabbit/scripts/rabbitmq-defaults
-
-  #     make dist manpages
-      
-  #     make install
-  #     make install-bin
-
-  # elixir:
-  #   after:
-  #     - erlang
-  #   plugin: make
-  #   source: https://github.com/elixir-lang/elixir.git
-  #   source-tag: v1.5.3
-  #   override-build: |
-  #     set -e -u -x
-
-  #     env | sort
-
-  #     make clean
-  #     make compile
-  #     # make test
-  #     make install PREFIX=/usr DESTDIR=${SNAPCRAFT_PART_INSTALL}
-  #   stage:
-  #     - usr
-
-  erlang-prebuilt:
-    plugin: nil 
+  erlang:
+    after: ["libgl1" ]
+    plugin: dump
+    source: https://packages.erlang-solutions.com/erlang/debian/pool/esl-erlang_25.0.2-1~ubuntu~focal_arm64.deb
+    source-type: deb
+    source-checksum: sha1/95922490ccab98804c6126faa6452256ff191852
     override-build: |
-      echo "pull!"
-      uname -a
-      curl -1sLf "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.github.rabbitmq.signing.gpg > /dev/null
-      curl -1sLf "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf77f1eda57ebb1cc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg > /dev/null
-      distribution=bionic
-      printf "deb [signed-by=/usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg] http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu $distribution main\ndeb-src [signed-by=/usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg] http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu $distribution main\n" > /etc/apt/sources.list.d/erlang.list
-      apt-get update -y
-      apt-get install -y erlang-base \
-                        erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
-                        erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
-                        erlang-runtime-tools erlang-snmp erlang-ssl \
-                        erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
-      mkdir -p $SNAPCRAFT_PART_INSTALL/usr/lib
-      cp -R /usr/lib/erlang $SNAPCRAFT_PART_INSTALL/usr/lib
-    build-packages:
-      - curl
-      - gnupg
-      - apt-transport-https
-    # stage-packages:
-    #   - erlang-base
-    #   - erlang-asn1
-    #   - erlang-crypto
-    #   - erlang-eldap
-    #   - erlang-ftp
-    #   - erlang-inets
-    #   - erlang-mnesia
-    #   - erlang-os-mon
-    #   - erlang-parsetools
-    #   - erlang-public-key
-    #   - erlang-runtime-tools
-    #   - erlang-snmp
-    #   - erlang-ssl
-    #   - erlang-syntax-tools
-    #   - erlang-tftp
-    #   - erlang-tools
-    #   - erlang-xmerl
+      snapcraftctl build
+      sed -i 's|/usr/lib|$SNAP/usr/lib|g' $SNAPCRAFT_PART_INSTALL/usr/bin/erl
+      sed -i 's|/usr/lib|$SNAP/usr/lib|g' $SNAPCRAFT_PART_INSTALL/usr/lib/erlang/bin/erl
+    
+  libgl1:
+    plugin: dump
+    source: http://ports.ubuntu.com/pool/main/libg/libglvnd/libgl1_1.3.1-1_arm64.deb
+    source-type: deb
+    source-checksum: sha1/56408a72863da278fcb038fd4e26e728362454aa
 
-      
 
-  # erlang:
-  #   plugin: autotools
-  #   source: https://github.com/erlang/otp.git
-  #   source-tag: OTP-20.3.8.26
-  #   build-packages:
-  #     - libssl-dev
-  #     - libncurses-dev
-  #   stage-packages:
-  #     - openssl
-  #     - ncurses-base
-  #     - libncurses5
-  #     - libtinfo5
-  #   override-build: |
-  #     apt-get install -y erlang
-  #     # set -e -u -x
-
-  #     # env | sort
-
-  #     # ./otp_build autoconf
-  #     # ./configure --prefix=/usr
-
-  #     # make
-  #     # make install DESTDIR=${SNAPCRAFT_PART_INSTALL}
-
-  #     # sed --in-place \
-  #     #   --expression 's:^\(ROOTDIR\).*:\1=$(readlink --canonicalize $(dirname $0))/../lib/erlang:' \
-  #     #   ${SNAPCRAFT_PART_INSTALL}/usr/bin/erl
-  #   stage:
-  #     - usr
