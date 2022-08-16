@@ -38,7 +38,7 @@ apps:
   #     - network-bind
   #   command: usr/lib/erlang/bin/epmd
   erlang-test:
-    command: usr/lib/erlang/erts-9.3.3.15/bin/erlexec
+    command: /bin/bash # usr/lib/erlang/erts-9.3.3.15/bin/erlexec
 
 parts:
   # rabbitmq-support:
@@ -119,40 +119,43 @@ parts:
 
   erlang-prebuilt:
     plugin: nil 
-    override-pull: |
+    override-build: |
+      echo "pull!"
       uname -a
       curl -1sLf "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.github.rabbitmq.signing.gpg > /dev/null
       curl -1sLf "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf77f1eda57ebb1cc" | sudo gpg --dearmor | sudo tee /usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg > /dev/null
       distribution=bionic
       printf "deb [signed-by=/usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg] http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu $distribution main\ndeb-src [signed-by=/usr/share/keyrings/net.launchpad.ppa.rabbitmq.erlang.gpg] http://ppa.launchpad.net/rabbitmq/rabbitmq-erlang/ubuntu $distribution main\n" > /etc/apt/sources.list.d/erlang.list
       apt-get update -y
-      # apt-get install -y erlang-base \
-      #                   erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
-      #                   erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
-      #                   erlang-runtime-tools erlang-snmp erlang-ssl \
-      #                   erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
+      apt-get install -y erlang-base \
+                        erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
+                        erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
+                        erlang-runtime-tools erlang-snmp erlang-ssl \
+                        erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
+      mkdir -p $SNAPCRAFT_PART_INSTALL/usr/lib
+      cp -R /usr/lib/erlang $SNAPCRAFT_PART_INSTALL/usr/lib
     build-packages:
       - curl
       - gnupg
       - apt-transport-https
-    stage-packages:
-      - erlang-base
-      - erlang-asn1
-      - erlang-crypto
-      - erlang-eldap
-      - erlang-ftp
-      - erlang-inets
-      - erlang-mnesia
-      - erlang-os-mon
-      - erlang-parsetools
-      - erlang-public-key
-      - erlang-runtime-tools
-      - erlang-snmp
-      - erlang-ssl
-      - erlang-syntax-tools
-      - erlang-tftp
-      - erlang-tools
-      - erlang-xmerl
+    # stage-packages:
+    #   - erlang-base
+    #   - erlang-asn1
+    #   - erlang-crypto
+    #   - erlang-eldap
+    #   - erlang-ftp
+    #   - erlang-inets
+    #   - erlang-mnesia
+    #   - erlang-os-mon
+    #   - erlang-parsetools
+    #   - erlang-public-key
+    #   - erlang-runtime-tools
+    #   - erlang-snmp
+    #   - erlang-ssl
+    #   - erlang-syntax-tools
+    #   - erlang-tftp
+    #   - erlang-tools
+    #   - erlang-xmerl
 
       
 
