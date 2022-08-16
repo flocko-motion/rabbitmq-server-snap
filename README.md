@@ -7,3 +7,5 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/ML-PA-Consulting-GmbH/rabbitmq-server-snap)
 
 This is a repository for the snapped version of RabbitMQ.
+
+Based on https://github.com/nicolasbock/rabbitmq-server-snap
