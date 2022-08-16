@@ -50,6 +50,7 @@ parts:
     stage:
       - etc/*
       - bin/*
+      - "logo.png"
 
   rabbitmq:
     plugin: dump
@@ -81,5 +82,9 @@ parts:
       sed -i 's|/usr/lib|$SNAP/usr/lib|g' $SNAPCRAFT_PART_INSTALL/usr/bin/erl
       sed -i 's|/usr/lib|$SNAP/usr/lib|g' $SNAPCRAFT_PART_INSTALL/usr/lib/erlang/bin/erl
     
-
+  libgl1:
+      plugin: dump
+      source: http://ports.ubuntu.com/pool/main/libg/libglvnd/libgl1_1.3.1-1_arm64.deb
+      source-type: deb
+      source-checksum: sha1/56408a72863da278fcb038fd4e26e728362454aa
 
