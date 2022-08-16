@@ -1,7 +1,7 @@
 name: rabbitmq-server-snap
 base: core18
 version: '3.6.10'
-summary: AMQP server written in Erlang
+summary: AMQP server written in  Erlang
 description: |
   RabbitMQ is an implementation of AMQP, the emerging standard for
   high performance enterprise messaging. The RabbitMQ server is a
