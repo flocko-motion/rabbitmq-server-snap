@@ -30,7 +30,6 @@ jobs:
           cp delme.nosnap rabbitmq.snap
           echo "::set-output name=snap::rabbitmq.snap"       
 
-      - uses: actions/checkout@v2
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
@@ -41,23 +40,22 @@ jobs:
           overwrite: true
           body: "This is my release text"
 
-
-      - name: Step 1 - Create a temporary artifact downloads folder
-        run: mkdir artifacts
+      # - name: Step 1 - Create a temporary artifact downloads folder
+      #   run: mkdir artifacts
         
-      - name: step 2 - Add artifacts to publish to the temp folder
-        run: |
-          cd artifacts
-          echo 'alpha'    > alpha.html
-          echo 'bravo'    > bravo.html
-          echo 'charlie'  > charlie.html
-          cd ..
+      # - name: step 2 - Add artifacts to publish to the temp folder
+      #   run: |
+      #     cd artifacts
+      #     echo 'alpha'    > alpha.html
+      #     echo 'bravo'    > bravo.html
+      #     echo 'charlie'  > charlie.html
+      #     cd ..
     
-      - name: Step 3 - Use the Upload Artifact GitHub Action
-        uses: actions/upload-artifact@v2
-        with: 
-          name: assets-for-download
-          path: artifacts
+      # - name: Step 3 - Use the Upload Artifact GitHub Action
+      #   uses: actions/upload-artifact@v2
+      #   with: 
+      #     name: assets-for-download
+      #     path: artifacts
 
       - name: Find latest version number in CHANGELOG.md
         id: version
