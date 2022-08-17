@@ -25,6 +25,10 @@ The amd64 build process is designed strictly analog to the arm64 build process t
 The `libwxgtk3` branch of dependencies is not included, as it takes a lot of storage space and is not needed for running a background service 
 like rabbitmq. Warnings about this library missing can therefore be ignored.
 
+## Notes on publishing a new release
+
+To publish a new release, add a new version in CHANGELOG.md - this will trigger the release process.
+
 ## Credits
 
 Based on: 
