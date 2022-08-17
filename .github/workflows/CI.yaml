@@ -17,12 +17,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Build arm64 snap
         uses: snapcore/action-build@v1
-          - with:
-            path: arm64
+        with:
+          path: arm64
       - name: Build amd64 snap
         uses: snapcore/action-build@v1
-          - with:
-            path: amd64
+        with:
+          path: amd64
         # id: snapcraft
       # - name: Install rabbitmq-server snap
        # run: |
