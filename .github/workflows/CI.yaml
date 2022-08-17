@@ -30,15 +30,6 @@ jobs:
           cp delme.nosnap rabbitmq.snap
           echo "::set-output name=snap::rabbitmq.snap"       
 
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: CHANGELOG.md
-          asset_name: mything
-          tag: "v123"
-          overwrite: true
-          body: "This is my release text"
 
       # - name: Step 1 - Create a temporary artifact downloads folder
       #   run: mkdir artifacts
@@ -84,7 +75,17 @@ jobs:
           tag_name: ${{ steps.version.outputs.release }}
           body_path: CHANGELOG.md
         env:
-          GITHUB_TOKEN: ${{ github.token }}              
+          GITHUB_TOKEN: ${{ github.token }}            
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: rabbitmq.snap
+          asset_name: rabbitmq.snap
+          tag: ${{ steps.version.outputs.release }}
+          overwrite: true
+          # body: "This is my release text"            
 # get installed version
 #          snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2
 
