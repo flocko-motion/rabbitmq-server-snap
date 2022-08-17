@@ -36,7 +36,19 @@ jobs:
           # echo "::set-output name=version::$(snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2)"
           # echo "::set-output name=tag::v$(snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2)-$(date +%s)"
           echo "::set-output name=release::v$(cat CHANGELOG.md | sed -n  's/^.*\[\([0-9\.\-]\+\).*$/\1/p' | head -1)"
+
+      - uses: mukunku/tag-exists-action@v1.0.0
+        id: checkTag
+        with: 
+          tag: ${{ steps.version.outputs.release }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: echo ${{ steps.checkTag.outputs.exists }}
+
+
       - name: Release
+        if: ${{ env.super_secret == '' }}
         uses: actions/create-release@v1
         id: create_release
         with:
