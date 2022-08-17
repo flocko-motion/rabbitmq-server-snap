@@ -56,12 +56,10 @@ apps:
     command: bin/rabbitmq-diagnostics
 
 parts:
-  #################### REMOVE THIS ## BEGIN
-  debug:
-    plugin: dump
-    source: http://ftp.de.debian.org/debian/pool/main/s/strace/strace_4.26-0.2_arm64.deb
-    source-type: deb
-  #################### REMOVE THIS ## END
+  # debug:
+  #   plugin: dump
+  #   source: http://ftp.de.debian.org/debian/pool/main/s/strace/strace_4.26-0.2_arm64.deb
+  #   source-type: deb
 
   assets:
     after: ["rabbitmq" ]

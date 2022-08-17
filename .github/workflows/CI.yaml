@@ -105,13 +105,6 @@ jobs:
           cp ${{ steps.snaparm64.outputs.snap }} release/$(basename ${{ steps.snaparm64.outputs.snap }})
           echo "::set-output name=release::$(basename ${{ steps.snaparm64.outputs.snap }})"
 
-      # - name: Stage arm64 for release
-      #   id: stagearm64
-      #   run: |
-      #     mkdir -p release
-      #     cp ${{ steps.snaparm64.outputs.snap }} release/
-      #     echo "::set-output name=release::${{ steps.snaparm64.outputs.snap }}"
-
       - name: Find latest version number in CHANGELOG.md
         id: version
         run: |
@@ -159,24 +152,3 @@ jobs:
           asset_name: ${{ steps.stageamd64.outputs.release }}
           tag: ${{ steps.version.outputs.release }}
           overwrite: true
-
-
-      # - name: Add amd64 binaries to release
-      #   if: ${{ steps.checkTag.outputs.exists == 'false' }}
-      #   uses: svenstaro/upload-release-action@v2
-      #   with:
-      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
-      #     file: ${{ steps.snapamd64.outputs.snap }}
-      #     asset_name: ${{ steps.snapamd64.outputs.snap }}
-      #     tag: ${{ steps.version.outputs.release }}
-      #     overwrite: true
-
-      # - name: Add arm64 binaries to release
-      #   if: ${{ steps.checkTag.outputs.exists == 'false' }}
-      #   uses: svenstaro/upload-release-action@v2
-      #   with:
-      #     repo_token: ${{ secrets.GITHUB_TOKEN }}
-      #     file: ${{ steps.snaparm64.outputs.snap }}
-      #     asset_name: ${{ steps.snaparm64.outputs.snap }}
-      #     tag: ${{ steps.version.outputs.release }}
-      #     overwrite: true
