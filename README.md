@@ -6,7 +6,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/ML-PA-Consulting-GmbH/rabbitmq-server-snap)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/ML-PA-Consulting-GmbH/rabbitmq-server-snap)
 
-Snapped version of RabbitMQ - currently for **arm64** only.
+Snapped version of RabbitMQ for **arm64** and **amd64**.
 
 It's based on up to date versions of RabbitMQ, Elixir and Erlang (as of 2022-08-16)
 
