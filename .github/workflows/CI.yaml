@@ -16,78 +16,92 @@ jobs:
       - name: Check out sources
         uses: actions/checkout@v2
 
-      # - name: Build amd64 snap
-      #   id: snapamd64
-      #   uses: snapcore/action-build@v1
-      #   with:
-      #     path: amd64
+      - name: Build amd64 snap
+        id: snapamd64
+        uses: snapcore/action-build@v1
+        with:
+          path: amd64
 
-      # - name: Install rabbitmq-server snap (arm64) for testing
-      #   run: |
-      #     sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
+      - name: Stage amd64 for release
+        id: stageamd64
+        run: |
+          mkdir -p release
+          cp ${{ steps.snapamd64.outputs.snap }} release/
+          echo "::set-output name=release::${{ steps.snapamd64.outputs.snap }}"
 
-      # - name: Wait for rabbitmq-server to start
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap services rabbitmq-server | grep --quiet enabled; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap services rabbitmq-server | grep --quiet active; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     echo "Snap services:"
-      #     sudo snap services rabbitmq-server
-      #     (( ${success} == 1 ))
+      - name: Install rabbitmq-server snap (arm64) for testing
+        run: |
+          sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
 
-      # - name: Check server logs
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 15); do
-      #       if sudo snap logs rabbitmq-server.rabbitmq-server | grep --quiet "Starting broker"; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     echo "Server logs:"
-      #     sudo snap logs rabbitmq-server.rabbitmq-server
-      #     (( ${success} == 1 ))
+      - name: Wait for rabbitmq-server to start
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 10); do
+            if sudo snap services rabbitmq-server | grep --quiet enabled; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          (( ${success} == 1 ))
+          success=0
+          for i in $(seq 10); do
+            if sudo snap services rabbitmq-server | grep --quiet active; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          echo "Snap services:"
+          sudo snap services rabbitmq-server
+          (( ${success} == 1 ))
 
-      # - name: Check whether process is running
-      #   run: pgrep -alf bin/rabbitmq-server
+      - name: Check server logs
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 15); do
+            if sudo snap logs rabbitmq-server.rabbitmq-server | grep --quiet "Starting broker"; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          echo "Server logs:"
+          sudo snap logs rabbitmq-server.rabbitmq-server
+          (( ${success} == 1 ))
 
-      # - name: Check cluster status
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo rabbitmq-server.rabbitmqctl cluster_status; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     echo "Cluster status:"
-      #     sudo rabbitmq-server.rabbitmqctl cluster_status
-      #     (( ${success} == 1 ))
+      - name: Check whether process is running
+        run: pgrep -alf bin/rabbitmq-server
 
-      # - name: Build arm64 snap
-      #   id: snaparm64
-      #   uses: snapcore/action-build@v1
-      #   with:
-      #     path: arm64
+      - name: Check cluster status
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 10); do
+            if sudo rabbitmq-server.rabbitmqctl cluster_status; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          echo "Cluster status:"
+          sudo rabbitmq-server.rabbitmqctl cluster_status
+          (( ${success} == 1 ))
+
+      - name: Build arm64 snap
+        id: snaparm64
+        uses: snapcore/action-build@v1
+        with:
+          path: arm64
+
+      - name: Stage arm64 for release
+        id: stagearm64
+        run: |
+          mkdir -p release
+          cp ${{ steps.snaparm64.outputs.snap }} release/
+          echo "::set-output name=release::${{ steps.snaparm64.outputs.snap }}"
 
       - name: Find latest version number in CHANGELOG.md
         id: version
@@ -122,7 +136,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: arm64/snap/snapcraft.yaml
+          file: release/${{ steps.stagearm64.outputs.release }}
           asset_name: testA.yaml
           tag: ${{ steps.version.outputs.release }}
           overwrite: true
@@ -132,7 +146,7 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: amd64/snap/snapcraft.yaml
+          file: release/${{ steps.stagearm64.outputs.release }}
           asset_name: testB.yaml
           tag: ${{ steps.version.outputs.release }}
           overwrite: true
