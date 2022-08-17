@@ -1,9 +1,13 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Version names are built from the RabbitMQ version which is packaged (e.g. 3.10.7) and 
+the revision of the snap package (e.g. 42) resulting in a version number like e.g. 3.10.7-42
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [3.10.7-1] - 2022-08-17
+
+Optimizing the build pipeline
+
+- Update: changed naming scheme for versions to <RabbitMQ-version>-<SnapPackageRevision> e.g. 3.10.7-1
 
 ## [3.10.7-0] - 2022-08-17
 
