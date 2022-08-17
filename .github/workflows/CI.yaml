@@ -25,6 +25,65 @@ jobs:
         with:
           path: amd64
 
+      - name: Install rabbitmq-server snap
+        run: |
+          echo "Tests.."
+          echo $(uname -a)
+          uname -a          
+          sudo snap install --dangerous --devmode ${{ steps.snapamd64.outputs.snap }}
+          snap run erlang-test
+
+      - name: Wait for rabbitmq-server to start
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 10); do
+            if sudo snap services rabbitmq-server-snap | grep --quiet enabled; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          (( ${success} == 1 ))
+          success=0
+          for i in $(seq 10); do
+            if sudo snap services rabbitmq-server-snap | grep --quiet active; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          (( ${success} == 1 ))
+
+      - name: Check server logs
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 10); do
+            if sudo snap logs rabbitmq-server-snap.rabbitmq-server | grep --quiet "Starting broker"; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          (( ${success} == 1 ))
+
+      - name: Check whether process is running
+        run: pgrep -alf bin/rabbitmq-server
+
+      - name: Check cluster status
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 10); do
+            if sudo rabbitmq-server-snap.rabbitmqctl cluster_status; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          (( ${success} == 1 ))
+      
       # - name: Simulate snap building
       #   id: snapamd64
       #   run: |
@@ -34,7 +93,7 @@ jobs:
       - name: Find latest version number in CHANGELOG.md
         id: version
         run: |
-          sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
+          # sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
           echo "::set-output name=rmqversion::$(snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2)"
           echo "::set-output name=release::v$(cat CHANGELOG.md | sed -n  's/^.*\[\([0-9\.\-]\+\).*$/\1/p' | head -1)"
 
@@ -73,61 +132,8 @@ jobs:
 #          snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2
 
         # id: snapcraft
-      # - name: Install rabbitmq-server snap
-       # run: |
-       #   echo "Tests.."
-       #   echo $(uname -a)
-       #   uname -a          
-       #   sudo snap install --devmode ./rabbitmq-server-snap_3.6.10_multi.snap
-       #   snap run erlang-test
 
-      # - name: Wait for rabbitmq-server to start
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap services rabbitmq-server-snap | grep --quiet enabled; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap services rabbitmq-server-snap | grep --quiet active; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      # - name: Check server logs
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap logs rabbitmq-server-snap.rabbitmq-server | grep --quiet "Starting broker"; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      # - name: Check whether process is running
-      #   run: pgrep -alf bin/rabbitmq-server
-      # - name: Check cluster status
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo rabbitmq-server-snap.rabbitmqctl cluster_status; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
+
       # - name: Store snap artifact
       #   uses: actions/upload-artifact@v2
       #   with:
