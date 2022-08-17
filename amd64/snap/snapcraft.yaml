@@ -40,6 +40,9 @@ apps:
       - network-bind
     command: usr/lib/erlang/bin/epmd
   rabbitmq-shell:
+    plugs:
+      - network
+      - network-bind
     command: bin/bash
 
   rabbitmq-diagnostics:
@@ -61,6 +64,9 @@ parts:
     source: https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.10.7/rabbitmq-server_3.10.7-1_all.deb
     source-type: deb    
     source-checksum: sha1/026a50b240548c8216a674218856385d4c9c7d3f
+    override-build: |
+      snapcraftctl build
+      sed -i 's|. ${RABBITMQ_CONF_ENV_FILE} \|\| true|. ${SNAP}${RABBITMQ_CONF_ENV_FILE} \|\| true|g' $SNAPCRAFT_PART_INSTALL/usr/lib/rabbitmq/bin/rabbitmq-env
 
   elixir:
     after: ["erlang" ]
