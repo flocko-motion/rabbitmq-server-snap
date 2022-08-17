@@ -28,8 +28,26 @@ jobs:
         id: snapamd64
         run: |
           cp delme.nosnap rabbitmq.snap
-          echo "::set-output name=snap::rabbitmq.snap"          
-      - name: Get version for publishing
+          echo "::set-output name=snap::rabbitmq.snap"       
+
+      - name: Step 1 - Create a temporary artifact downloads folder
+        run: mkdir artifacts
+        
+      - name: step 2 - Add artifacts to publish to the temp folder
+        run: |
+          cd artifacts
+          echo 'alpha'    > alpha.html
+          echo 'bravo'    > bravo.html
+          echo 'charlie'  > charlie.html
+          cd ..
+    
+      - name: Step 3 - Use the Upload Artifact GitHub Action
+        uses: actions/upload-artifact@v2
+        with: 
+          name: assets-for-download
+          path: artifacts
+
+      - name: Find latest version number in CHANGELOG.md
         id: version
         run: |
           sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
@@ -37,7 +55,7 @@ jobs:
           # echo "::set-output name=tag::v$(snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2)-$(date +%s)"
           echo "::set-output name=release::v$(cat CHANGELOG.md | sed -n  's/^.*\[\([0-9\.\-]\+\).*$/\1/p' | head -1)"
 
-      - name: Check if this is a new release
+      - name: Check if this is a new release version
         uses: mukunku/tag-exists-action@v1.0.0
         id: checkTag
         with: 
@@ -45,9 +63,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: echo ${{ steps.checkTag.outputs.exists }}
-
-      - name: Release
+      - name: Publish this version as release
         if: ${{ steps.checkTag.outputs.exists == 'false' }}
         uses: actions/create-release@v1
         id: create_release
