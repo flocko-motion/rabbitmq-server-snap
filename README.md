@@ -26,7 +26,8 @@ The `libwxgtk3` branch of dependencies is not included, as it takes a lot of sto
 like rabbitmq. Warnings about this library missing can therefore be ignored.
 
 **Attention:** While the amd64 version is checked after every build, the arm64 version is not - as no arm64 device is available for testing
-in the CI/CD pipeline.
+in the CI/CD pipeline. As both versions are build analog, there's a high probability of arm64 working, if amd64 is. Manual testing on an 
+arm device should be performed prior to every release, though!
 
 ## Notes on publishing a new release
 
