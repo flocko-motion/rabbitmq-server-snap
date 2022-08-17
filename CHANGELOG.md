@@ -4,6 +4,12 @@ Version names are built from the RabbitMQ version which is packaged (e.g. 3.10.7
 the revision of the snap package (e.g. 42) resulting in a version number like e.g. 3.10.7-42
 _
 
+## [3.10.7-2] - 2022-08-17
+
+Testing conditional release in github workflow
+
+- Update: release is only performed, if new version is found in CHANGELOG.md
+
 ## [3.10.7-1] - 2022-08-17
 
 Optimizing the build pipeline
