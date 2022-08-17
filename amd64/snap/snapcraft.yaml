@@ -30,6 +30,7 @@ apps:
     restart-delay: 10s
     command: bin/rabbitmq-server
     stop-command: bin/rabbitmqctl stop
+    
   rabbitmqctl:
     plugs:
       - network

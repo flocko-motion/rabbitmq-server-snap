@@ -3,7 +3,7 @@
 Version names are built from the contained RabbitMQ version (3.X.X) and
 the revision of the snap package, resulting in a version number like e.g. 3.10.7-42
 
-## [3.10.7-12] - 2022-08-17
+## [3.10.7-13] - 2022-08-17
 
 Experimenting with CI
 

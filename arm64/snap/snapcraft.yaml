@@ -15,11 +15,10 @@ license: Apache-2.0
 architectures:
   - build-on: amd64
     run-on: arm64
-grade: devel
-confinement: devmode
-# grade: stable  
-# confinement: strict 
-
+# grade: devel
+# confinement: devmode
+grade: stable  
+confinement: strict 
 
 apps:
   rabbitmq-server:
@@ -31,26 +30,38 @@ apps:
     restart-delay: 10s
     command: bin/rabbitmq-server
     stop-command: bin/rabbitmqctl stop
+
   rabbitmqctl:
     plugs:
       - network
+      - network-bind
     command: bin/rabbitmqctl
+
   epmd:
     plugs:
       - network
       - network-bind
     command: usr/lib/erlang/bin/epmd
+
   rabbitmq-shell:
+    plugs:
+      - network
+      - network-bind
     command: bin/bash
 
   rabbitmq-diagnostics:
+    plugs:
+      - network
+      - network-bind
     command: bin/rabbitmq-diagnostics
 
 parts:
+  #################### REMOVE THIS ## BEGIN
   debug:
     plugin: dump
     source: http://ftp.de.debian.org/debian/pool/main/s/strace/strace_4.26-0.2_arm64.deb
     source-type: deb
+  #################### REMOVE THIS ## END
 
   assets:
     after: ["rabbitmq" ]
