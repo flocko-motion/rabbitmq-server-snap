@@ -11,74 +11,144 @@ on:
 jobs:
 
   build:
-    strategy:
-      matrix:
-#        os: [ubuntu-18.04, ubuntu-20.04]
-        os: [ubuntu-18.04]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-20.04
     steps:
       - name: Check out sources
         uses: actions/checkout@v2
-      - name: Build snap
-        uses: snapcore/action-build@v1
-        id: snapcraft
-      - name: Install rabbitmq-server snap
-        run: |
-          echo "Tests.."
-          echo $(uname -a)
-          uname -a          
-          sudo snap install --devmode ./rabbitmq-server-snap_3.6.10_multi.snap
-          snap run erlang-test
 
-      # - name: Wait for rabbitmq-server to start
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap services rabbitmq-server-snap | grep --quiet enabled; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap services rabbitmq-server-snap | grep --quiet active; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      # - name: Check server logs
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo snap logs rabbitmq-server-snap.rabbitmq-server | grep --quiet "Starting broker"; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      # - name: Check whether process is running
-      #   run: pgrep -alf bin/rabbitmq-server
-      # - name: Check cluster status
-      #   run: |
-      #     set -e -u -x
-      #     success=0
-      #     for i in $(seq 10); do
-      #       if sudo rabbitmq-server-snap.rabbitmqctl cluster_status; then
-      #         success=1
-      #         break
-      #       fi
-      #       sleep 2
-      #     done
-      #     (( ${success} == 1 ))
-      # - name: Store snap artifact
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: snap
-      #     path: ${{ steps.snapcraft.outputs.snap }}
+      - name: Build amd64 snap
+        id: snapamd64
+        uses: snapcore/action-build@v1
+        with:
+          path: amd64
+
+      - name: Stage amd64 for release
+        id: stageamd64
+        run: |
+          mkdir -p release
+          echo "stage release file at: release/$(basename ${{ steps.snapamd64.outputs.snap }})"
+          cp ${{ steps.snapamd64.outputs.snap }} release/$(basename ${{ steps.snapamd64.outputs.snap }})
+          echo "::set-output name=release::$(basename ${{ steps.snapamd64.outputs.snap }})"
+
+      - name: Install rabbitmq-server snap (arm64) for testing
+        run: |
+          sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
+
+      - name: Wait for rabbitmq-server to start
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 10); do
+            if sudo snap services rabbitmq-server | grep --quiet enabled; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          (( ${success} == 1 ))
+          success=0
+          for i in $(seq 10); do
+            if sudo snap services rabbitmq-server | grep --quiet active; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          echo "Snap services:"
+          sudo snap services rabbitmq-server
+          (( ${success} == 1 ))
+
+      - name: Check server logs
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 15); do
+            if sudo snap logs rabbitmq-server.rabbitmq-server | grep --quiet "Starting broker"; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          echo "Server logs:"
+          sudo snap logs rabbitmq-server.rabbitmq-server
+          (( ${success} == 1 ))
+
+      - name: Check whether process is running
+        run: pgrep -alf bin/rabbitmq-server
+
+      - name: Check cluster status
+        run: |
+          set -e -u -x
+          success=0
+          for i in $(seq 10); do
+            if sudo rabbitmq-server.rabbitmqctl cluster_status; then
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          echo "Cluster status:"
+          sudo rabbitmq-server.rabbitmqctl cluster_status
+          (( ${success} == 1 ))
+
+      - name: Build arm64 snap
+        id: snaparm64
+        uses: snapcore/action-build@v1
+        with:
+          path: arm64
+
+      - name: Stage arm64 for release
+        id: stagearm64
+        run: |
+          mkdir -p release
+          echo "stage release file at: release/$(basename ${{ steps.snaparm64.outputs.snap }})"
+          cp ${{ steps.snaparm64.outputs.snap }} release/$(basename ${{ steps.snaparm64.outputs.snap }})
+          echo "::set-output name=release::$(basename ${{ steps.snaparm64.outputs.snap }})"
+
+      - name: Find latest version number in CHANGELOG.md
+        id: version
+        run: |
+          # sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
+          echo "::set-output name=rmqversion::$(snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2)"
+          echo "::set-output name=release::v$(cat CHANGELOG.md | sed -n  's/^.*\[\([0-9\.\-]\+\).*$/\1/p' | head -1)"
+
+      - name: Check if this is a new release version
+        uses: mukunku/tag-exists-action@v1.0.0
+        id: checkTag
+        with: 
+          tag: ${{ steps.version.outputs.release }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create new release
+        if: ${{ steps.checkTag.outputs.exists == 'false' }}
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.version.outputs.release }}
+          tag_name: ${{ steps.version.outputs.release }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}            
+
+      - name: Add arm64 binaries to release
+        if: ${{ steps.checkTag.outputs.exists == 'false' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release/${{ steps.stagearm64.outputs.release }}
+          asset_name: ${{ steps.stagearm64.outputs.release }}
+          tag: ${{ steps.version.outputs.release }}
+          overwrite: true
+
+      - name: Add amd64 binaries to release
+        if: ${{ steps.checkTag.outputs.exists == 'false' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: release/${{ steps.stageamd64.outputs.release }}
+          asset_name: ${{ steps.stageamd64.outputs.release }}
+          tag: ${{ steps.version.outputs.release }}
+          overwrite: true

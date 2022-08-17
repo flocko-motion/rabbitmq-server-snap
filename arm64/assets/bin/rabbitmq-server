@@ -1,0 +1,4 @@
+#!/bin/bash
+source $(dirname "$0")/rabbitmq-env
+$RABBITMQ_BIN/rabbitmq-server "$@"
+
