@@ -1,10 +1,10 @@
 # Changelog
 
-Version names are built from the RabbitMQ version which is packaged (e.g. 3.10.7) and 
-the revision of the snap package (e.g. 42) resulting in a version number like e.g. 3.10.7-42
+Version names are built from the contained RabbitMQ version (3.X.X) and
+the revision of the snap package, resulting in a version number like e.g. 3.10.7-42
 _
 
-## [3.10.7-4] - 2022-08-17
+## [3.10.7-5] - 2022-08-17
 
 Testing conditional release in github workflow
 
