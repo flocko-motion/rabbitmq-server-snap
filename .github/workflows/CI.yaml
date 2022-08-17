@@ -26,8 +26,10 @@ jobs:
         id: stageamd64
         run: |
           mkdir -p release
-          cp ${{ steps.snapamd64.outputs.snap }} release/
-          echo "::set-output name=release::${{ steps.snapamd64.outputs.snap }}"
+          RELEASE_AMD64 = release/$(basename ${{ steps.snapamd64.outputs.snap }})
+          echo "stage release file at: $RELEASE_AMD64"
+          cp ${{ steps.snapamd64.outputs.snap }} $RELEASE_AMD64
+          echo "::set-output name=release::$RELEASE_AMD64"
 
       - name: Install rabbitmq-server snap (arm64) for testing
         run: |
@@ -100,8 +102,17 @@ jobs:
         id: stagearm64
         run: |
           mkdir -p release
-          cp ${{ steps.snaparm64.outputs.snap }} release/
-          echo "::set-output name=release::${{ steps.snaparm64.outputs.snap }}"
+          RELEASE_ARM64 = release/$(basename ${{ steps.snaparm64.outputs.snap }})
+          echo "stage release file at: $RELEASE_ARM64"
+          cp ${{ steps.snaparm64.outputs.snap }} $RELEASE_ARM64
+          echo "::set-output name=release::$RELEASE_ARM64"
+
+      # - name: Stage arm64 for release
+      #   id: stagearm64
+      #   run: |
+      #     mkdir -p release
+      #     cp ${{ steps.snaparm64.outputs.snap }} release/
+      #     echo "::set-output name=release::${{ steps.snaparm64.outputs.snap }}"
 
       - name: Find latest version number in CHANGELOG.md
         id: version
