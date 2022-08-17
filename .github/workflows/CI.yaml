@@ -26,10 +26,9 @@ jobs:
         id: stageamd64
         run: |
           mkdir -p release
-          RELEASE_AMD64 = release/$(basename ${{ steps.snapamd64.outputs.snap }})
-          echo "stage release file at: $RELEASE_AMD64"
-          cp ${{ steps.snapamd64.outputs.snap }} $RELEASE_AMD64
-          echo "::set-output name=release::$RELEASE_AMD64"
+          echo "stage release file at: release/$(basename ${{ steps.snapamd64.outputs.snap }})"
+          cp ${{ steps.snapamd64.outputs.snap }} release/$(basename ${{ steps.snapamd64.outputs.snap }})
+          echo "::set-output name=release::release/$(basename ${{ steps.snapamd64.outputs.snap }})"
 
       - name: Install rabbitmq-server snap (arm64) for testing
         run: |
