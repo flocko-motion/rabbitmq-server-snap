@@ -1,6 +1,6 @@
 name: rabbitmq-server
 base: core20
-version: '3.10.7'
+version: '3.10.7-0'
 summary: AMQP server written in Erlang
 description: |
   RabbitMQ is an implementation of AMQP, the emerging standard for
