@@ -37,7 +37,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: CHANGELOG.md
           asset_name: mything
-          tag: ${{ github.ref }}
+          tag: "v123"
           overwrite: true
           body: "This is my release text"
 
