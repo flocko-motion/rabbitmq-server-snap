@@ -19,26 +19,29 @@ jobs:
       #   uses: snapcore/action-build@v1
       #   with:
       #     path: arm64
-      - name: Build amd64 snap
-        id: snapamd64
-        uses: snapcore/action-build@v1
-        with:
-          path: amd64
+      # - name: Build amd64 snap
+      #   id: snapamd64
+      #   uses: snapcore/action-build@v1
+      #   with:
+      #     path: amd64
+      # - name: Install rabbitmq-server snap
+      #   run: |
+      #     sudo snap install --dangerous --devmode ${{ steps.snapamd64.outputs.snap }}
 
-      - name: Install rabbitmq-server snap
+      - name: Simulate snap building
+        id: snapamd64
         run: |
-          echo "Tests.."
-          echo $(uname -a)
-          uname -a          
-          sudo snap install --dangerous --devmode ${{ steps.snapamd64.outputs.snap }}
-          snap run erlang-test
+          cp delme.nosnap rabbitmq.snap
+          echo "::set-output name=snap::rabbitmq.snap"     
+          sudo snap install --dangerous --devmode rabbitmq.snap
+
 
       - name: Wait for rabbitmq-server to start
         run: |
           set -e -u -x
           success=0
           for i in $(seq 10); do
-            if sudo snap services rabbitmq-server-snap | grep --quiet enabled; then
+            if sudo snap services rabbitmq-server | grep --quiet enabled; then
               success=1
               break
             fi
@@ -47,7 +50,7 @@ jobs:
           (( ${success} == 1 ))
           success=0
           for i in $(seq 10); do
-            if sudo snap services rabbitmq-server-snap | grep --quiet active; then
+            if sudo snap services rabbitmq-server | grep --quiet active; then
               success=1
               break
             fi
@@ -60,7 +63,7 @@ jobs:
           set -e -u -x
           success=0
           for i in $(seq 10); do
-            if sudo snap logs rabbitmq-server-snap.rabbitmq-server | grep --quiet "Starting broker"; then
+            if sudo snap logs rabbitmq-server.rabbitmq-server | grep --quiet "Starting broker"; then
               success=1
               break
             fi
@@ -84,11 +87,7 @@ jobs:
           done
           (( ${success} == 1 ))
       
-      # - name: Simulate snap building
-      #   id: snapamd64
-      #   run: |
-      #     cp delme.nosnap rabbitmq.snap
-      #     echo "::set-output name=snap::rabbitmq.snap"       
+  
 
       - name: Find latest version number in CHANGELOG.md
         id: version
