@@ -1,0 +1,163 @@
+name: rabbitmq-server
+base: core20
+version: '3.10.7'
+summary: AMQP server written in Erlang
+description: |
+  RabbitMQ is an implementation of AMQP, the emerging standard for
+  high performance enterprise messaging. The RabbitMQ server is a
+  robust and scalable implementation of an AMQP broker.
+source-code: https://github.com/ML-PA-Consulting-GmbH/rabbitmq-server-snap
+website: https://github.com/ML-PA-Consulting-GmbH/rabbitmq-server-snap
+issues: https://github.com/ML-PA-Consulting-GmbH/rabbitmq-server-snap/issues
+contact: https://github.com/ML-PA-Consulting-GmbH/rabbitmq-server-snap/issues
+icon: assets/logo.png
+license: Apache-2.0
+architectures:
+  - build-on: amd64
+    run-on: amd64
+# grade: devel
+# confinement: devmode
+grade: stable  
+confinement: strict 
+
+apps:
+  rabbitmq-server:
+    daemon: simple
+    plugs:
+      - network
+      - network-bind
+    restart-condition: on-failure
+    restart-delay: 10s
+    command: bin/rabbitmq-server
+    stop-command: bin/rabbitmqctl stop
+  rabbitmqctl:
+    plugs:
+      - network
+    command: bin/rabbitmqctl
+  epmd:
+    plugs:
+      - network
+      - network-bind
+    command: usr/lib/erlang/bin/epmd
+  rabbitmq-shell:
+    command: bin/bash
+
+  rabbitmq-diagnostics:
+    command: bin/rabbitmq-diagnostics
+
+parts:
+  assets:
+    after: ["rabbitmq" ]
+    plugin: dump
+    source: assets
+    stage:
+      - etc/*
+      - bin/*
+      - "logo.png"
+
+  rabbitmq:
+    after: ["elixir" ]
+    plugin: dump
+    source: https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.10.7/rabbitmq-server_3.10.7-1_all.deb
+    source-type: deb    
+    source-checksum: sha1/026a50b240548c8216a674218856385d4c9c7d3f
+
+  elixir:
+    after: ["erlang" ]
+    plugin: dump
+    source: https://github.com/elixir-lang/elixir/releases/download/v1.13.3/Precompiled.zip
+    source-type: zip
+    source-checksum: sha1/7a2d0ff13beadcba3f566d692d960dcd785df5c8
+    organize:
+      '*': 'usr/'
+
+  erlang:
+    after: ["libgl1", "libglu", "libodbc", "libwxbase", "libltdl" ] # , "libgtk3u" is ignored to keep file size small, we won't need it anyways
+    plugin: dump
+    source: https://packages.erlang-solutions.com/erlang/debian/pool/esl-erlang_25.0.2-1~ubuntu~focal_amd64.deb
+    source-type: deb
+    source-checksum: sha1/64db8e85bb1ae5cbbf46a75b61c423c6d5517bcd
+    override-build: |
+      snapcraftctl build
+      sed -i 's|/usr/lib|$SNAP/usr/lib|g' $SNAPCRAFT_PART_INSTALL/usr/bin/erl
+      sed -i 's|/usr/lib|$SNAP/usr/lib|g' $SNAPCRAFT_PART_INSTALL/usr/lib/erlang/bin/erl
+    
+  # ---------------------------
+  # required runtime libraries:
+
+  libgl1:
+    after: ["libglx" ]
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libg/libglvnd/libgl1_1.3.1-1_amd64.deb
+    source-type: deb
+    source-checksum: sha1/80f0751eee20fc81557ff1265f2c94d7cd32a048
+
+  libglx:
+    after: ["libglvnd", "libx11" ]
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libg/libglvnd/libglx0_1.3.2-1~ubuntu0.20.04.2_amd64.deb
+    source-type: deb
+    source-checksum: sha1/2770dc8d96d276bab85911fec4f4f95c74b64d52
+      
+  libglvnd:
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libg/libglvnd/libglvnd0_1.3.2-1~ubuntu0.20.04.2_amd64.deb
+    source-type: deb
+    source-checksum: sha1/d18a149f6b50f50cb091d5de2910afe544a5823e
+            
+  libx11:
+    after: ["libxcb" ]
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libx/libx11/libx11-6_1.6.9-2ubuntu1.2_amd64.deb
+    source-type: deb
+    source-checksum: sha1/07a8236b3c010e2edab9cc20166ae5dcde6f2cab
+
+  libxcb:    
+    after: ["libxau", "libxdmcp" ]
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libx/libxcb/libxcb1_1.14-2_amd64.deb
+    source-type: deb
+    source-checksum: sha1/4f2abc05b9035c81f231644840bf9ede5b8b207a
+
+  libxau:    
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libx/libxau/libxau6_1.0.9-0ubuntu1_amd64.deb
+    source-type: deb
+    source-checksum: sha1/021b6a55735c0a47022e0d600715c0b19347b2de
+
+  libxdmcp:    
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libx/libxdmcp/libxdmcp6_1.1.3-0ubuntu1_amd64.deb
+    source-type: deb
+    source-checksum: sha1/2be7004fdf4796f3975157890b8de29553392f6f
+
+  libglu:    
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libg/libglu/libglu1-mesa_9.0.1-1build1_amd64.deb
+    source-type: deb
+    source-checksum: sha1/42e24d6fba813c12349a762e675483c225860602
+
+  libodbc:
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/u/unixodbc/libodbc1_2.3.6-0.1build1_amd64.deb
+    source-type: deb
+    source-checksum: sha1/02ffa4bb8ac1d094baf150f8034f61d51b6a8cc1
+
+  libwxbase:
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/universe/w/wxwidgets3.0/libwxbase3.0-0v5_3.0.4+dfsg-15build1_amd64.deb
+    source-type: deb
+    source-checksum: sha1/5ace705e3320d2347ce060e8ef8530729de4a7c6
+
+  libltdl:
+    plugin: dump
+    source: http://archive.ubuntu.com/ubuntu/pool/main/libt/libtool/libltdl7_2.4.6-14_amd64.deb
+    source-type: deb
+    source-checksum: sha1/74d73ab99a97e0d1746a69074335f27f71a8a1f0
+
+  # to keep the snap size small, we don't import libgtk3u, which itself needs a whole lot of other libraries
+  # libgtk3u:
+  #   plugin: dump
+  #   source: http://archive.ubuntu.com/ubuntu/pool/universe/w/wxwidgets3.0/libwxgtk3.0-gtk3-0v5_3.0.4+dfsg-15build1_amd64.deb
+  #   source-type: deb
+  #   source-checksum: sha1/00359ac07798ac1315548569896c063d676594a2

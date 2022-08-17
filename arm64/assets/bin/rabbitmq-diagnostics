@@ -1,0 +1,3 @@
+#!/bin/bash
+source ${SNAP}/etc/rabbitmq.env
+$RABBITMQ_BIN/rabbitmq-diagnostics "$@"
