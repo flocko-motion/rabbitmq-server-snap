@@ -15,14 +15,21 @@ jobs:
     steps:
       - name: Check out sources
         uses: actions/checkout@v2
-      - name: Build arm64 snap
-        uses: snapcore/action-build@v1
-        with:
-          path: arm64
+      # - name: Build arm64 snap
+      #   uses: snapcore/action-build@v1
+      #   with:
+      #     path: arm64
       - name: Build amd64 snap
+        id: snapamd64
         uses: snapcore/action-build@v1
         with:
           path: amd64
+      - run: |
+              sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
+              # do something with the snap          
+# get installed version
+#          snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2
+
         # id: snapcraft
       # - name: Install rabbitmq-server snap
        # run: |
