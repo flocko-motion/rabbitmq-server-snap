@@ -1,0 +1,20 @@
+#!/bin/bash
+export RABBITMQ_MNESIA_BASE=${SNAP_COMMON}/var/lib/rabbitmq/mnesia
+export RABBITMQ_PID_FILE=${RABBITMQ_MNESIA_BASE}/rabbitmq-server.pid
+export RABBITMQ_CONFIG_FILES=${SNAP}/etc/rabbitmq
+export RABBITMQ_LOG_BASE=${SNAP_COMMON}/var/log/rabbitmq
+export RABBITMQ_GENERATED_CONFIG_DIR=${SNAP_COMMON}/etc/rabbitmq
+export RABBITMQ_ENABLED_PLUGINS_FILE=$RABBITMQ_GENERATED_CONFIG_DIR/pluginsfile
+export RABBITMQ_LOGS=${RABBITMQ_LOG_BASE}/erlang.log
+export RABBITMQ_BIN=${SNAP}/usr/lib/rabbitmq/bin
+export ERL_DIR=${SNAP}/usr/lib/erlang/erts-9.2/bin
+
+mkdir -p ${SNAP_COMMON}/etc/rabbitmq
+mkdir -p $RABBITMQ_MNESIA_BASE
+mkdir -p $RABBITMQ_LOG_BASE
+ERL_COOKIE=$HOME/.erlang.cookie
+if [ ! -f $ERL_COOKIE ]
+then 
+    echo $(tr -dc A-Z0-9 </dev/urandom | head -c 19) > $ERL_COOKIE
+fi
+chmod 600 $HOME/.erlang.cookie
