@@ -1,6 +1,6 @@
 name: rabbitmq-server
 base: core20
-version: '3.10.7-0'
+version: '3.10.7'
 summary: AMQP server written in Erlang
 description: |
   RabbitMQ is an implementation of AMQP, the emerging standard for
@@ -15,10 +15,10 @@ license: Apache-2.0
 architectures:
   - build-on: amd64
     run-on: arm64
-# grade: devel
-# confinement: devmode
-grade: stable  
-confinement: strict 
+grade: devel
+confinement: devmode
+# grade: stable  
+# confinement: strict 
 
 
 apps:
@@ -47,6 +47,11 @@ apps:
     command: bin/rabbitmq-diagnostics
 
 parts:
+  debug:
+    plugin: dump
+    source: http://ftp.de.debian.org/debian/pool/main/s/strace/strace_4.26-0.2_arm64.deb
+    source-type: deb
+
   assets:
     after: ["rabbitmq" ]
     plugin: dump

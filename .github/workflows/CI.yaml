@@ -101,10 +101,9 @@ jobs:
         id: stagearm64
         run: |
           mkdir -p release
-          RELEASE_ARM64 = release/$(basename ${{ steps.snaparm64.outputs.snap }})
-          echo "stage release file at: $RELEASE_ARM64"
-          cp ${{ steps.snaparm64.outputs.snap }} $RELEASE_ARM64
-          echo "::set-output name=release::$RELEASE_ARM64"
+          echo "stage release file at: release/$(basename ${{ steps.snaparm64.outputs.snap }})"
+          cp ${{ steps.snaparm64.outputs.snap }} release/$(basename ${{ steps.snaparm64.outputs.snap }})
+          echo "::set-output name=release::release/$(basename ${{ steps.snaparm64.outputs.snap }})"
 
       # - name: Stage arm64 for release
       #   id: stagearm64
