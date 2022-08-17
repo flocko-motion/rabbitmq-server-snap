@@ -24,9 +24,22 @@ jobs:
         uses: snapcore/action-build@v1
         with:
           path: amd64
-      - run: |
+      - name: Get version for publishing
+        id: version
+        run: |
               sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
-              # do something with the snap          
+              echo "::set-output name=version::$(snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2)"
+      - name: Release
+          uses: actions/create-release@v1
+          id: create_release
+          with:
+            draft: false
+            prerelease: false
+            release_name: ${{ steps.version.outputs.version }}
+            tag_name: ${{ github.ref }}
+            body_path: CHANGELOG.md
+          env:
+            GITHUB_TOKEN: ${{ github.token }}              
 # get installed version
 #          snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2
 
