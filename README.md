@@ -12,7 +12,7 @@ It's based on up to date versions of RabbitMQ, Elixir and Erlang (as of 2022-08-
 
 The snap package is still in **alpha**, don't use for production, yet.
 
-## Note on snap building process
+## Notes on snap building process
 
 Both snaps (arm64, amd64) are built from precompiled binaries. Snapcraft currently doesn't offer any usable method
 for building arm64 snaps on a amd64 machine as cross-compiling is discouraged and building using an arm-VM is not possible in CI/CD.
