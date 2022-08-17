@@ -33,12 +33,14 @@ apps:
   rabbitmqctl:
     plugs:
       - network
+      - network-bind
     command: bin/rabbitmqctl
   epmd:
     plugs:
       - network
       - network-bind
     command: usr/lib/erlang/bin/epmd
+
   rabbitmq-shell:
     plugs:
       - network
@@ -46,6 +48,9 @@ apps:
     command: bin/bash
 
   rabbitmq-diagnostics:
+    plugs:
+      - network
+      - network-bind
     command: bin/rabbitmq-diagnostics
 
 parts:
