@@ -16,11 +16,6 @@ jobs:
       - name: Check out sources
         uses: actions/checkout@v2
 
-      # - name: Build arm64 snap
-      #   uses: snapcore/action-build@v1
-      #   with:
-      #     path: arm64
-
       - name: Build amd64 snap
         id: snapamd64
         uses: snapcore/action-build@v1
@@ -30,14 +25,6 @@ jobs:
       - name: Install rabbitmq-server snap (arm64) for testing
         run: |
           sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
-
-      # - name: Simulate snap building
-      #   id: snapamd64
-      #   run: |
-      #     cp delme.nosnap rabbitmq.snap
-      #     echo "::set-output name=snap::rabbitmq.snap"     
-      #     sudo snap install --dangerous rabbitmq.snap
-
 
       - name: Wait for rabbitmq-server to start
         run: |
@@ -96,6 +83,12 @@ jobs:
           sudo rabbitmq-server.rabbitmqctl cluster_status
           (( ${success} == 1 ))
 
+      - name: Build arm64 snap
+        id: snaparm64
+        uses: snapcore/action-build@v1
+        with:
+          path: arm64
+
       - name: Find latest version number in CHANGELOG.md
         id: version
         run: |
@@ -124,7 +117,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}            
 
-      - name: Upload binaries to release
+      - name: Add amd64 binaries to release
         if: ${{ steps.checkTag.outputs.exists == 'false' }}
         uses: svenstaro/upload-release-action@v2
         with:
@@ -133,15 +126,13 @@ jobs:
           asset_name: ${{ steps.snapamd64.outputs.snap }}
           tag: ${{ steps.version.outputs.release }}
           overwrite: true
-          # body: "This is my release text"            
-# get installed version
-#          snap list | grep rabbitmq-server | sed 's|\s\+|_|g' | cut -d '_' -f 2
 
-        # id: snapcraft
-
-
-      # - name: Store snap artifact
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: snap
-      #     path: ${{ steps.snapcraft.outputs.snap }}
+      - name: Add arm64 binaries to release
+        if: ${{ steps.checkTag.outputs.exists == 'false' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ steps.snaparm64.outputs.snap }}
+          asset_name: ${{ steps.snaparm64.outputs.snap }}
+          tag: ${{ steps.version.outputs.release }}
+          overwrite: true
