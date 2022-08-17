@@ -15,25 +15,28 @@ jobs:
     steps:
       - name: Check out sources
         uses: actions/checkout@v2
+
       # - name: Build arm64 snap
       #   uses: snapcore/action-build@v1
       #   with:
       #     path: arm64
-      # - name: Build amd64 snap
-      #   id: snapamd64
-      #   uses: snapcore/action-build@v1
-      #   with:
-      #     path: amd64
-      # - name: Install rabbitmq-server snap
-      #   run: |
-      #     sudo snap install --dangerous --devmode ${{ steps.snapamd64.outputs.snap }}
 
-      - name: Simulate snap building
+      - name: Build amd64 snap
         id: snapamd64
+        uses: snapcore/action-build@v1
+        with:
+          path: amd64
+
+      - name: Install rabbitmq-server snap (arm64) for testing
         run: |
-          cp delme.nosnap rabbitmq.snap
-          echo "::set-output name=snap::rabbitmq.snap"     
-          sudo snap install --dangerous --devmode rabbitmq.snap
+          sudo snap install --dangerous ${{ steps.snapamd64.outputs.snap }}
+
+      # - name: Simulate snap building
+      #   id: snapamd64
+      #   run: |
+      #     cp delme.nosnap rabbitmq.snap
+      #     echo "::set-output name=snap::rabbitmq.snap"     
+      #     sudo snap install --dangerous rabbitmq.snap
 
 
       - name: Wait for rabbitmq-server to start
@@ -86,8 +89,7 @@ jobs:
             sleep 2
           done
           (( ${success} == 1 ))
-      
-  
+              
 
       - name: Find latest version number in CHANGELOG.md
         id: version
